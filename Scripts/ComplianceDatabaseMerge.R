@@ -34,7 +34,7 @@
 
 # FILE IMPORTS
     
-#read in the csv files. Recognize #N/A and blanks as NA
+# Read in the csv files. Recognize #N/A and blanks as NA
     poobah <- read_xlsx(path = "C:/Users/kstory/Documents/GrandPoobah_R/Poobah/2020-2021 Poobah 2020-04-30.xlsx", sheet = "Assigned List", guess_max = 1048576,  skip = 3, na = c("", NA, "#N/A"))
     NRIS_inspections <- read_csv(file = "C:/Users/kstory/Documents/GrandPoobah_R/Dashboard Data/NRIS/Inspections/NRIS.SearchResult.2020-05-08 14_05_32.csv", na = c("", NA,"#N/A"))
     NRIS_complaints <- read_csv(file = "C:/Users/kstory/Documents/GrandPoobah_R/Dashboard Data/NRIS/Complaints/NRIS.SearchResult.2020-05-08 14_07_32.csv", na = c("", NA,"#N/A"))
