@@ -1,6 +1,15 @@
-#The purpose of this script is to clean, filter, and merge the AMS datamart data with the poobah and NRIS
-#The script is saved at https://github.com/MinistryPoobah/GrandPoobah_R. Some version control was lost during a git merge issue.
-#The script is current scheduled to run daily at 0900 HRs when the user is logged on and has the drives mapped. The scheduler details can be found in the local folder C:/Users/kstory/R/win-library/3.6/taskscheduleR/extdata
+
+# __ This script was designed for the Environmental Protection Division Compliance Team
+# __ with the purpose of cleaning, filtering, and mergeing the poobah and NRIS databases 
+# __ for use in the Compliance Team ArcGIS Online Dashboard.
+
+# The script can be found on GitHub at https://github.com/MinistryPoobah/NRISPoobahMerge.
+
+
+# Author: Keith Story, M.Sc., R.P. Bio.
+# Ministry of Environment and Climate Change Strategy
+# Environmental Protection Division
+
 
 # _______________________________________________________________________________________
 
