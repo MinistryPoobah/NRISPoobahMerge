@@ -7,7 +7,6 @@
 # DEPENDENCIES
 
     library(tidyverse)
-    library(readr)
     library(data.table)
     library(readxl)
     library(googledrive)
