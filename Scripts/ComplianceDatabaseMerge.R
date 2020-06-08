@@ -10,6 +10,7 @@
 # Ministry of Environment and Climate Change Strategy
 # Environmental Protection Division
 
+setwd("C:/Users/kstory/Documents/GrandPoobah_R/Dashboard Data")
 
 # _______________________________________________________________________________________
 
@@ -35,10 +36,10 @@
 # FILE IMPORTS
     
 # Read in the csv files. Recognize #N/A and blanks as NA
-    poobah <- read_xlsx(path = "C:/Users/kstory/Documents/GrandPoobah_R/Poobah/2020-2021 Poobah 2020-04-30.xlsx", sheet = "Assigned List", guess_max = 1048576,  skip = 3, na = c("", NA, "#N/A"))
-    NRIS_inspections <- read_csv(file = "C:/Users/kstory/Documents/GrandPoobah_R/Dashboard Data/NRIS/Inspections/NRIS.SearchResult.2020-05-08 14_05_32.csv", na = c("", NA,"#N/A"))
-    NRIS_complaints <- read_csv(file = "C:/Users/kstory/Documents/GrandPoobah_R/Dashboard Data/NRIS/Complaints/NRIS.SearchResult.2020-05-08 14_07_32.csv", na = c("", NA,"#N/A"))
-    
+    poobah <- read_xlsx(path = "C:/Users/kstory/Documents/GrandPoobah_R/Dashboard Data/Poobah/2020-2021 Poobah 2020-05-29.xlsx", sheet = "Assigned List", guess_max = 1048576,  skip = 3, na = c("", NA, "#N/A"))
+    NRIS_inspections <- read_csv(file = "C:/Users/kstory/Documents/GrandPoobah_R/Dashboard Data/NRIS/Inspections/NRIS.SearchResult.2020-05-29 14_45_29.csv", na = c("", NA,"#N/A"))
+    NRIS_complaints <- read_csv(file = "C:/Users/kstory/Documents/GrandPoobah_R/Dashboard Data/NRIS/Complaints/NRIS.SearchResult.2020-05-25 07_49_42.csv", na = c("", NA,"#N/A"))
+    name_key <- read_csv(file = "C:/Users/kstory/Documents/GrandPoobah_R/Dashboard Data/Name Key.csv")
 # _______________________________________________________________________________________
     
 # FUNCTIONS
@@ -50,7 +51,7 @@
 # POOBAH
     
     dashboard <- poobah %>%
-      filter(`Workplan INS Qtr` == "Q1") %>% # Filter for quarter.
+      # filter(`Workplan INS Qtr` == "Q1") %>% # Filter for quarter.
       mutate(Long = as.numeric(Long) *-1) %>% #the data in the poobah have the longitude as positive. It should be negative.
       mutate("Authorizations - Name" = paste(`Auth Num`, Authorization, sep = " - ")) # Create a unique site name that includes both the auth number and site name
     # filter(Assigned %notin% c("Abandoned", "Cancelled", "Reactive", "Defer", "Doesn't exist", "?"))
@@ -64,13 +65,29 @@
       rename("Auth Num" = "Authorization ID") %>% # Make field name match the poobah name so a merge can be easily made.
       filter(`Inspection Status` %notin% c("Deleted", "Closed", "Template")) %>% # Omit not useful NRIS data.
       # filter(`Inspection Date` > "2020-01-01") %>%
-      select(`Auth Num`, `Inspection Status`, `Inspection Date`, "Latitude", "Longitude") # Trim down the data set now that it is filtered.
+      select(`Auth Num`, `Inspection Status`, Inspector, `Inspection Date`, "Latitude", "Longitude") # Trim down the data set now that it is filtered.
+      # mutate(Inspector = str_replace(Inspector, "IDIR\\\\", ""))
+    
+    # for (i in NRIS_inspections_filtered$Inspector) {
+    #   
+    #   NRIS_inspections_filtered$Inspector[which(name_key$`nris name` == i)] <- "Priority 1"
+    #   
+    #   
+    # }
+    # 
+    
+    # name_list_NRIS <- as.data.frame(unique(NRIS_inspections_filtered$Inspector))
+    # write_csv(name_list_NRIS, "NRIS names.csv")
 
+    
 # Recode some weird values and mizspellz in the poobah Assigned field.
-    dashboard$Assigned[is.na(dashboard$Assigned)] <- "Unassigned"
+    dashboard$`Assigned`[is.na(dashboard$`Assigned`)] <- "Unassigned"
     dashboard$`Assigned`[which(dashboard$`Assigned` == "jeffery")] <- "Jeffery"
     dashboard$`Assigned`[which(dashboard$`Assigned` == "White")] <- "T. White"
-    dashboard$Assigned[which(dashboard$Assigned == "Naseri")] <- "Nazeri"
+    dashboard$`Assigned`[which(dashboard$`Assigned` == "Naseri")] <- "Nazeri"
+    
+    # name_list_poobah <- as.data.frame(unique(dashboard$Assigned))
+    # write_csv(name_list_poobah, "Poobah names.csv")
 
 # Merge the cleaned/filtered poobah data with the NRIS data. Merge on the Auth Num field, as this is a unique identifier. Remove duplicate rows.
     dashboard_merge <- merge(x=NRIS_inspections_filtered,y=dashboard,by="Auth Num",all.y =TRUE)
@@ -80,6 +97,7 @@
     dashboard_merge$`Last Inspected` <- as.POSIXct(ifelse(!is.na(dashboard_merge$`Inspection Date`), dashboard_merge$`Inspection Date`, dashboard_merge$`Last Inspected`), origin = "1970-01-01 00:00:00")
     
 # Update the poobah "Inspected this Fiscal?" column to "In Draft", "Complete", or "Not Started" based on NRIS data
+    
     dashboard_merge$'Inspected This Fiscal?'[which(dashboard_merge$`Inspection Status` == "Incomplete")] <- "In Draft"
     dashboard_merge$'Inspected This Fiscal?'[which(dashboard_merge$`Inspection Status` == "Complete")] <- "Complete" 
     dashboard_merge$'Inspected This Fiscal?'[which(dashboard_merge$'Inspected This Fiscal?' == "No")] <- "Not Started"
@@ -111,12 +129,10 @@
     dashboard_merge <- dashboard_merge %>%
       select(-c(2:5, 26)) %>%
       filter(!is.na(`Auth Num`))
-      # mutate("Completion Status" = case_when(
-      #   dashboard_merge$`Inspected This Fiscal?` == "Not Started" ~ 0,
-      #   dashboard_merge$`Inspected This Fiscal?` == "In Draft" ~ 0,
-      #   TRUE ~ 1
-      # )) # The mutate function here creates a column that has "1" for complete, and "0" for not complete. This is needed for % progress plots, which were removed.
 
+    dashboard_merge$CPIX[which(dashboard_merge$CPIX == 0)] <- NA
+    
+    
 # _______________________________________________________________________________________
     
 # NRIS COMPLAINTS
