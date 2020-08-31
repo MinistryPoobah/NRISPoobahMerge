@@ -118,6 +118,8 @@ spread_compliance_data <- mymergeddata %>%
   theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1))
   )
 
+# ___________________________________________________________________
+
 ComplianceTeamOverview <- ggplot(data = mymergeddata, aes(as.Date(Date), Freq), color = Assigned) +
     geom_point(color = "white") +
     geom_smooth(method = "loess", color = "olivedrab2") +
