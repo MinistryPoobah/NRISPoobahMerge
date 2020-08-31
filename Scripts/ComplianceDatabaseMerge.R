@@ -10,7 +10,7 @@
 # Ministry of Environment and Climate Change Strategy
 # Environmental Protection Division
 
-setwd("C:/Users/kstory/Documents/GrandPoobah_R/Dashboard Data")
+  setwd("C:/Users/kstory/Documents/GrandPoobah_R/Dashboard Data")
 
 # _______________________________________________________________________________________
 
@@ -36,10 +36,9 @@ setwd("C:/Users/kstory/Documents/GrandPoobah_R/Dashboard Data")
 # FILE IMPORTS
     
 # Read in the csv files. Recognize #N/A and blanks as NA
-    poobah <- read_xlsx(path = "C:/Users/kstory/Documents/GrandPoobah_R/Dashboard Data/Poobah/2020-2021 Poobah 2020-05-29.xlsx", sheet = "Assigned List", guess_max = 1048576,  skip = 3, na = c("", NA, "#N/A"))
-    NRIS_inspections <- read_csv(file = "C:/Users/kstory/Documents/GrandPoobah_R/Dashboard Data/NRIS/Inspections/NRIS.SearchResult.2020-05-29 14_45_29.csv", na = c("", NA,"#N/A"))
-    NRIS_complaints <- read_csv(file = "C:/Users/kstory/Documents/GrandPoobah_R/Dashboard Data/NRIS/Complaints/NRIS.SearchResult.2020-05-25 07_49_42.csv", na = c("", NA,"#N/A"))
-    name_key <- read_csv(file = "C:/Users/kstory/Documents/GrandPoobah_R/Dashboard Data/Name Key.csv")
+    poobah <- read_xlsx(path = "C:/Users/kstory/Documents/GrandPoobah_R/Dashboard Data/Poobah/2020-2021 Poobah 2020-07-23.xlsx", sheet = "Assigned List", guess_max = 1048576,  skip = 3, na = c("", NA, "#N/A"))
+    NRIS_inspections <- read_csv(file = "C:/Users/kstory/Documents/GrandPoobah_R/Dashboard Data/NRIS/Inspections/NRIS.SearchResult.2020-07-23 13_41_25.csv", na = c("", NA,"#N/A"))
+    NRIS_complaints <- read_csv(file = "C:/Users/kstory/Documents/GrandPoobah_R/Dashboard Data/NRIS/Complaints/NRIS.SearchResult.2020-07-23 13_42_26.csv", na = c("", NA,"#N/A"))
 # _______________________________________________________________________________________
     
 # FUNCTIONS
@@ -167,3 +166,7 @@ setwd("C:/Users/kstory/Documents/GrandPoobah_R/Dashboard Data")
     # (Complaints <- drive_upload(media = "C:/Users/kstory/Documents/GrandPoobah_R/Dashboard Data/Updated NRIS Complaints Data.csv", path = "Compliance/", overwrite = TRUE))
     # (Inspections <- drive_upload(media = "C:/Users/kstory/Documents/GrandPoobah_R/Dashboard Data/Updated NRIS Inspection Data.csv", path = "Compliance/", overwrite = TRUE))
     
+    # df_check <- dashboard_merge %>%
+    #   filter(Assigned == "OK Blitz")
+    # 
+    # write_csv(df_check, "poobah_blitz_check.csv")
