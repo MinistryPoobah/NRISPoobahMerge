@@ -99,7 +99,7 @@ mymergeddata = multmerge("C:/Users/kstory/Documents/GrandPoobah_R/Dashboard Data
 mymergeddata <- mymergeddata %>%
   bind_rows %>%
   rename(Assigned = Var1) %>%
-  filter(Date < )
+  filter(as.Date(Date) > "2020-04-14")
 
 
 spread_compliance_data <- mymergeddata %>%
@@ -120,7 +120,7 @@ spread_compliance_data <- mymergeddata %>%
 
 # ___________________________________________________________________
 
-ComplianceTeamOverview <- ggplot(data = mymergeddata, aes(as.Date(Date), Freq), color = Assigned) +
+(ComplianceTeamOverview <- ggplot(data = mymergeddata, aes(as.Date(Date), Freq), color = Assigned) +
     geom_point(color = "white") +
     geom_smooth(method = "loess", color = "olivedrab2") +
     theme_light() +
@@ -136,6 +136,7 @@ ComplianceTeamOverview <- ggplot(data = mymergeddata, aes(as.Date(Date), Freq), 
           axis.title.x = element_text(color = "white", size = 15),
           axis.title.y = element_text(color = "white", size = 15)
           )
+)
 
 png("C:/Users/kstory/Documents/GrandPoobah_R/Dashboard Data/ComplianceTeamOverview.png")
 print(ComplianceTeamOverview)
