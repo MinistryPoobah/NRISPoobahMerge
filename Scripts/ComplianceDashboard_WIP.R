@@ -1,6 +1,6 @@
 
 # __ This script was designed for the Environmental Protection Division Compliance Team
-# __ with the purpose of cleaning, filtering, and mergeing the poobah and NRIS databases 
+# __ with the purpose of cleaning, filtering, and merging the poobah and NRIS databases 
 # __ for use in the Compliance Team ArcGIS Online Dashboard.
 
 # The script can be found on GitHub at https://github.com/MinistryPoobah/NRISPoobahMerge.
@@ -10,9 +10,8 @@
 # Ministry of Environment and Climate Change Strategy
 # Environmental Protection Division
 
-  setwd("C:/Users/kstory/Documents/GrandPoobah_R/Dashboard Data/DashboardDataOutput/")
 
-# _______________________________________________________________________________________
+#### _________________________________INITIALIZATION AND DATA IMPORT__________________________________
 
 # DEPENDENCIES
 
@@ -21,14 +20,18 @@
   library(readxl)
   library(googledrive)
   library(lubridate)
+  
 
+# LAN path for saving output
+  
+  setwd("//Sfp.idir.bcgov/s140/s40086/WANSHARE/ROB/ARCS/ROB ARCS/Information Technology 6000-6999/6820-20 ArcGIS Dashboard/DashboardDataOutput") 
 # _______________________________________________________________________________________
 
 # AUTHORIZATION FOR GOOGLE CLOUD
   
   drive_auth(
     email = "epdcompliancedashboard@gmail.com",
-  )
+    )
 
 
 # _______________________________________________________________________________________
@@ -36,12 +39,11 @@
 # FILE IMPORTS
 
 # Read in the csv files. Recognize #N/A and blanks as NA
-  poobah <- read_xlsx(path = "C:/Users/kstory/Documents/GrandPoobah_R/Dashboard Data/Poobah/2020-2021 Poobah 2020-08-28.xlsx", sheet = "Assigned List", guess_max = 1048576,  skip = 3, na = c("", NA, "#N/A"))
-  NRIS_inspections <- read_csv(file = "C:/Users/kstory/Documents/GrandPoobah_R/Dashboard Data/NRIS/Inspections/NRIS.SearchResult.2020-08-28 13_38_36.csv", na = c("", NA,"#N/A"))
-  NRIS_complaints <- read_csv(file = "C:/Users/kstory/Documents/GrandPoobah_R/Dashboard Data/NRIS/Complaints/NRIS.SearchResult.2020-08-28 13_39_20.csv", na = c("", NA,"#N/A"))
-  datamart <- read_xlsx(path = "P:/WANSHARE/ROB/ARCS/ARCS Compliance/6000-6999 Information Technology/6820-01 Datamarts/DataMart of AMS Regulated Parties V1.3 Mar 16_2020.xlsx", sheet = "ALL", na = c("", NA,"#N/A", "n/a"))
-  
-  name_key <- read_csv(file = "C:/Users/kstory/Documents/GrandPoobah_R/Dashboard Data/Name Key.csv")
+  poobah <- read_xlsx(path = "//Sfp.idir.bcgov/s140/s40086/WANSHARE/ROB/ARCS/ROB ARCS/Information Technology 6000-6999/6820-20 ArcGIS Dashboard/Poobah/2020-2021 Poobah 2020-05-25.xlsx", sheet = "Assigned List", guess_max = 1048576,  skip = 3, na = c("", NA, "#N/A"))
+  NRIS_inspections <- read_csv(file = "//Sfp.idir.bcgov/s140/s40086/WANSHARE/ROB/ARCS/ROB ARCS/Information Technology 6000-6999/6820-20 ArcGIS Dashboard/NRIS/Inspections/NRIS.SearchResult.2020-09-11 14_27_59.csv", na = c("", NA,"#N/A"))
+  NRIS_complaints <- read_csv(file = "//Sfp.idir.bcgov/s140/s40086/WANSHARE/ROB/ARCS/ROB ARCS/Information Technology 6000-6999/6820-20 ArcGIS Dashboard/NRIS/Complaints/NRIS.SearchResult.2020-09-11 14_28_42.csv", na = c("", NA,"#N/A"))
+  datamart <- read_xlsx(path = "//Sfp.idir.bcgov/s140/s40086/WANSHARE/ROB/ARCS/ROB ARCS/Information Technology 6000-6999/6820-01 Datamarts/DataMart of AMS Regulated Parties V1.3 Sep_15_2020.xlsx", sheet = "ALL", na = c("", NA,"#N/A", "n/a"))
+  name_key <- read_csv(file = "//Sfp.idir.bcgov/s140/s40086/WANSHARE/ROB/ARCS/ROB ARCS/Information Technology 6000-6999/6820-20 ArcGIS Dashboard/Name Key.csv")
   
 # _______________________________________________________________________________________
 
@@ -49,7 +51,7 @@
 
   `%notin%` <- Negate(`%in%`) # Dummy function made to exlude fields during filtering.
 
-# _______________________________________________________________________________________  
+#### _________________________________CLEANING AND MERGING__________________________________  
 
 # POOBAH
 
@@ -71,13 +73,6 @@
     select(`Auth Num`, `Inspection Status`, Inspector, `Inspection Date`, "Latitude", "Longitude") # Trim down the data set now that it is filtered.
   # mutate(Inspector = str_replace(Inspector, "IDIR\\\\", ""))
 
-# for (i in NRIS_inspections_filtered$Inspector) {
-#   
-#   NRIS_inspections_filtered$Inspector[which(name_key$`nris name` == i)] <- "Priority 1"
-#   
-#   
-# }
-# 
 
 # name_list_NRIS <- as.data.frame(unique(NRIS_inspections_filtered$Inspector))
 # write_csv(name_list_NRIS, "NRIS names.csv")
@@ -200,16 +195,16 @@
 # EXPORTING TO CSV AND GOOGLE DRIVE
 
 
-out_file <- paste(Sys.Date(), "2_DashboardData.csv", sep = "_")
+out_file <- paste("ProgressTracker/", Sys.Date(), "_DashboardData.csv", sep = "")
 
 write_csv(dashboard_merge, out_file)
-write_csv(dashboard_merge, "Updated NRIS Inspection Data.csv")
-write_csv(NRIS_complaints_filtered, "Updated NRIS Complaints Data.csv")
-write_csv(AMS_clean, "Updated_Authorizations.csv")
+write_csv(dashboard_merge, "Updated NRIS Inspection Data.csv") # !! DO NOT CHANGE THE OUTFILE NAME
+write_csv(NRIS_complaints_filtered, "Updated NRIS Complaints Data.csv") # !! DO NOT CHANGE THE OUTFILE NAME
+write_csv(AMS_clean, "Updated_Authorizations.csv") # !! DO NOT CHANGE THE OUTFILE NAME
 
 # Use drive upDATE only when a files has been previously uploaded. This allows the file to use the same id, which is referenced by ArcGIS. Using Drive upLOAD will overwrite the id.
-(Inspections <- drive_update(file = as_id("1qYZ1zvyOt2P6_eNwysNUEezcRgb5qqC0"), media = "C:/Users/kstory/Documents/GrandPoobah_R/Dashboard Data/Updated NRIS Inspection Data.csv"))
-(Complaints <- drive_update(file = as_id("1RixYE1ApAMvKk350pwx4A-MwboSs6MeX"), media = "C:/Users/kstory/Documents/GrandPoobah_R/Dashboard Data/Updated NRIS Complaints Data.csv"))
+(Inspections <- drive_update(file = as_id("1qYZ1zvyOt2P6_eNwysNUEezcRgb5qqC0"), media = "C:/Users/kstory/Documents/GrandPoobah_R/Dashboard Data/DashboardDataOutput/Updated NRIS Inspection Data.csv"))
+(Complaints <- drive_update(file = as_id("1RixYE1ApAMvKk350pwx4A-MwboSs6MeX"), media = "C:/Users/kstory/Documents/GrandPoobah_R/Dashboard Data/DashboardDataOutput/Updated NRIS Complaints Data.csv"))
 (Authorizations <- drive_update(file = as_id("1iVRv5-eSrQreN9uocFnjTtgt3EfjAsy-"), media = "C:/Users/kstory/Documents/GrandPoobah_R/Dashboard Data/2020-05-15_All_Authorizations.csv"))
 
 
