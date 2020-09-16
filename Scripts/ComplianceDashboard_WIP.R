@@ -10,6 +10,9 @@
 # Ministry of Environment and Climate Change Strategy
 # Environmental Protection Division
 
+# ____________________________________________________________________________________________________  
+# ____________________________________________________________________________________________________
+
 
 #### _________________________________INITIALIZATION AND DATA IMPORT__________________________________
 
@@ -22,34 +25,48 @@
   library(lubridate)
   
 
-# LAN path for saving output
+# LAN path for saving outputs
   
   setwd("//Sfp.idir.bcgov/s140/s40086/WANSHARE/ROB/ARCS/ROB ARCS/Information Technology 6000-6999/6820-20 ArcGIS Dashboard/DashboardDataOutput") 
+  
+# _______________________________________________________________________________________
+  
+# FUNCTIONS
+  
+  `%notin%` <- Negate(`%in%`) # Dummy function made to exlude fields during filtering.
+  
 # _______________________________________________________________________________________
 
 # AUTHORIZATION FOR GOOGLE CLOUD
   
-  drive_auth(
-    email = "epdcompliancedashboard@gmail.com",
-    )
+  drive_auth(email = "epdcompliancedashboard@gmail.com")
+  
+# _______________________________________________________________________________________
+  
 
-
+# FILE LIST INFO
+  
+# Saves a file list of the paths in each data directory.
+  poobah_file_list <- file.info(list.files("//Sfp.idir.bcgov/s140/s40086/WANSHARE/ROB/ARCS/ROB ARCS/Information Technology 6000-6999/6820-20 ArcGIS Dashboard/Poobah", full.names = TRUE))
+  inspections_file_list <- file.info(list.files("//Sfp.idir.bcgov/s140/s40086/WANSHARE/ROB/ARCS/ROB ARCS/Information Technology 6000-6999/6820-20 ArcGIS Dashboard/NRIS/Inspections", full.names = TRUE))
+  complaints_file_list <- file.info(list.files("//Sfp.idir.bcgov/s140/s40086/WANSHARE/ROB/ARCS/ROB ARCS/Information Technology 6000-6999/6820-20 ArcGIS Dashboard/NRIS/Complaints", full.names = TRUE))
+  
 # _______________________________________________________________________________________
 
 # FILE IMPORTS
 
-# Read in the csv files. Recognize #N/A and blanks as NA
-  poobah <- read_xlsx(path = "//Sfp.idir.bcgov/s140/s40086/WANSHARE/ROB/ARCS/ROB ARCS/Information Technology 6000-6999/6820-20 ArcGIS Dashboard/Poobah/2020-2021 Poobah 2020-05-25.xlsx", sheet = "Assigned List", guess_max = 1048576,  skip = 3, na = c("", NA, "#N/A"))
-  NRIS_inspections <- read_csv(file = "//Sfp.idir.bcgov/s140/s40086/WANSHARE/ROB/ARCS/ROB ARCS/Information Technology 6000-6999/6820-20 ArcGIS Dashboard/NRIS/Inspections/NRIS.SearchResult.2020-09-11 14_27_59.csv", na = c("", NA,"#N/A"))
-  NRIS_complaints <- read_csv(file = "//Sfp.idir.bcgov/s140/s40086/WANSHARE/ROB/ARCS/ROB ARCS/Information Technology 6000-6999/6820-20 ArcGIS Dashboard/NRIS/Complaints/NRIS.SearchResult.2020-09-11 14_28_42.csv", na = c("", NA,"#N/A"))
+# Read in the most recently updated spreadsheet from the respective file lists. Recognize #N/A and blanks as "NA"
+  poobah <- read_xlsx(path = rownames(poobah_file_list[which.max(poobah_file_list$mtime),]), sheet = "Assigned List", guess_max = 1048576,  skip = 3, na = c("", NA, "#N/A"))
+  NRIS_inspections <- read_csv(file = rownames(inspections_file_list[which.max(inspections_file_list$mtime),]), na = c("", NA,"#N/A"))
+  NRIS_complaints <- read_csv(file = rownames(complaints_file_list[which.max(complaints_file_list$mtime),]), na = c("", NA,"#N/A"))
+  
   datamart <- read_xlsx(path = "//Sfp.idir.bcgov/s140/s40086/WANSHARE/ROB/ARCS/ROB ARCS/Information Technology 6000-6999/6820-01 Datamarts/DataMart of AMS Regulated Parties V1.3 Sep_15_2020.xlsx", sheet = "ALL", na = c("", NA,"#N/A", "n/a"))
   name_key <- read_csv(file = "//Sfp.idir.bcgov/s140/s40086/WANSHARE/ROB/ARCS/ROB ARCS/Information Technology 6000-6999/6820-20 ArcGIS Dashboard/Name Key.csv")
   
-# _______________________________________________________________________________________
 
-# FUNCTIONS
+# __________________________________________________________________________________________  
+# __________________________________________________________________________________________ 
 
-  `%notin%` <- Negate(`%in%`) # Dummy function made to exlude fields during filtering.
 
 #### _________________________________CLEANING AND MERGING__________________________________  
 
@@ -158,7 +175,7 @@
   NRIS_complaints_filtered$Longitude[which(is.na(NRIS_complaints_filtered$Longitude))] <- -138
   NRIS_complaints_filtered$Longitude[which(NRIS_complaints_filtered$Longitude == 0)] <- -138
 
-# _______________________________________________________________________________________________________________________
+# _______________________________________________________________________________________
   
 # AMS Datamart Authorizations
   
@@ -188,13 +205,13 @@
   AMS_clean$Longitude[which(is.na(AMS_clean$Longitude))] <- -138
   AMS_clean$Longitude[which(AMS_clean$Longitude == 0)] <- -138
 
-# _______________________________________________________________________________________________________________________  
-# _______________________________________________________________________________________________________________________
-# _______________________________________________________________________________________________________________________
+# _______________________________________________________________________________________
+# _______________________________________________________________________________________
+
+
   
-# EXPORTING TO CSV AND GOOGLE DRIVE
-
-
+# ____________________________EXPORTING TO CSV AND GOOGLE DRIVE__________________________
+  
 out_file <- paste("ProgressTracker/", Sys.Date(), "_DashboardData.csv", sep = "")
 
 write_csv(dashboard_merge, out_file)
@@ -203,34 +220,34 @@ write_csv(NRIS_complaints_filtered, "Updated NRIS Complaints Data.csv") # !! DO 
 write_csv(AMS_clean, "Updated_Authorizations.csv") # !! DO NOT CHANGE THE OUTFILE NAME
 
 # Use drive upDATE only when a files has been previously uploaded. This allows the file to use the same id, which is referenced by ArcGIS. Using Drive upLOAD will overwrite the id.
-(Inspections <- drive_update(file = as_id("1qYZ1zvyOt2P6_eNwysNUEezcRgb5qqC0"), media = "C:/Users/kstory/Documents/GrandPoobah_R/Dashboard Data/DashboardDataOutput/Updated NRIS Inspection Data.csv"))
-(Complaints <- drive_update(file = as_id("1RixYE1ApAMvKk350pwx4A-MwboSs6MeX"), media = "C:/Users/kstory/Documents/GrandPoobah_R/Dashboard Data/DashboardDataOutput/Updated NRIS Complaints Data.csv"))
-(Authorizations <- drive_update(file = as_id("1iVRv5-eSrQreN9uocFnjTtgt3EfjAsy-"), media = "C:/Users/kstory/Documents/GrandPoobah_R/Dashboard Data/2020-05-15_All_Authorizations.csv"))
+(Inspections <- drive_update(file = as_id("1qYZ1zvyOt2P6_eNwysNUEezcRgb5qqC0"), media = "Updated NRIS Inspection Data.csv"))
+(Complaints <- drive_update(file = as_id("1RixYE1ApAMvKk350pwx4A-MwboSs6MeX"), media = "Updated NRIS Complaints Data.csv"))
+(Authorizations <- drive_update(file = as_id("1iVRv5-eSrQreN9uocFnjTtgt3EfjAsy-"), media = "Updated_Authorizations.csv"))
 
 
 # (Complaints <- drive_upload(media = "C:/Users/kstory/Documents/GrandPoobah_R/Dashboard Data/Updated NRIS Complaints Data.csv", path = "Compliance/", overwrite = TRUE))
 # (Inspections <- drive_upload(media = "C:/Users/kstory/Documents/GrandPoobah_R/Dashboard Data/Updated NRIS Inspection Data.csv", path = "Compliance/", overwrite = TRUE))
 # (Authorizations <- drive_upload(media = "C:/Users/kstory/Documents/GrandPoobah_R/Dashboard Data/Updated_Authorizations.csv", path = "Compliance/", overwrite = TRUE))
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+# df_check <- dashboard_merge %>%
+#   filter(Assigned == "OK Blitz")
 # 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-df_check <- dashboard_merge %>%
-  filter(Assigned == "OK Blitz")
-
-write_csv(df_check, "poobah_blitz_check.csv")
+# write_csv(df_check, "poobah_blitz_check.csv")
