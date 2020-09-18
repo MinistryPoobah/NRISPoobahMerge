@@ -76,7 +76,7 @@
     # filter(`Workplan INS Qtr` == "Q1") %>% # Filter for quarter.
     mutate(Long = as.numeric(Long) *-1) %>% #the data in the poobah have the longitude as positive. It should be negative.
     mutate("Authorizations - Name" = paste(`Auth Num`, Authorization, sep = " - ")) # Create a unique site name that includes both the auth number and site name
-# filter(Assigned %notin% c("Abandoned", "Cancelled", "Reactive", "Defer", "Doesn't exist", "?"))
+  # filter(Assigned %notin% c("Abandoned", "Cancelled", "Reactive", "Defer", "Doesn't exist", "?"))
 
 # _______________________________________________________________________________________
 
@@ -107,9 +107,9 @@
 
   
 # Update the poobah "Inspected this Fiscal?" column to "In Draft", "Complete", or "Not Started" based on NRIS data
-
-  # Insert IF conditional here for matching inspector name: ### QUESTION: Is it worth including cancelled and unassigned in the names key?
-  for (i in 1:nrow(dashboard_merge)){
+# The following "for" loop checks through the poobah Assigned names. If the Assigned name matches the list of approved names, then the status can be updated.
+# The purpose of this loop is to ensure that inspections completed by reactive aren't updated as "complete" when they actually haven't been inspected by planned.  
+   for (i in 1:nrow(dashboard_merge)){
     if (dashboard_merge$Assigned %in% name_key$`poobah name`){
       dashboard_merge$'Inspected This Fiscal?'[which(dashboard_merge$`Inspection Status` == "Complete")] <- "Complete" 
       dashboard_merge$'Inspected This Fiscal?'[which(dashboard_merge$'Inspected This Fiscal?' == "Yes")] <- "Complete" 
@@ -211,7 +211,7 @@ write_csv(AMS_clean, "Updated_Authorizations.csv") # !! DO NOT CHANGE THE OUTFIL
 (Complaints <- drive_update(file = as_id("1RixYE1ApAMvKk350pwx4A-MwboSs6MeX"), media = "Updated NRIS Complaints Data.csv"))
 (Authorizations <- drive_update(file = as_id("1iVRv5-eSrQreN9uocFnjTtgt3EfjAsy-"), media = "Updated_Authorizations.csv"))
 
-
+# drive_upload is used for creation of the file on Drive and the creation of the ID. Do not use this unless you really know what you are doing! Overwriting the ID will cause serious problems in ArcGIS Online.
 # (Complaints <- drive_upload(media = "C:/Users/kstory/Documents/GrandPoobah_R/Dashboard Data/Updated NRIS Complaints Data.csv", path = "Compliance/", overwrite = TRUE))
 # (Inspections <- drive_upload(media = "C:/Users/kstory/Documents/GrandPoobah_R/Dashboard Data/Updated NRIS Inspection Data.csv", path = "Compliance/", overwrite = TRUE))
 # (Authorizations <- drive_upload(media = "C:/Users/kstory/Documents/GrandPoobah_R/Dashboard Data/Updated_Authorizations.csv", path = "Compliance/", overwrite = TRUE))

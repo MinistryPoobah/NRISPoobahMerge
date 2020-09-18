@@ -16,19 +16,18 @@ drive_auth(
 
 `%notin%` <- Negate(`%in%`)
 
-path.set = "//Sfp.idir.bcgov/s140/s40086/WANSHARE/ROB/ARCS/ROB ARCS/Information Technology 6000-6999/6820-20 ArcGIS Dashboard/DashboardDataOutput"
-setwd("//Sfp.idir.bcgov/s140/s40086/WANSHARE/ROB/ARCS/ROB ARCS/Information Technology 6000-6999/6820-20 ArcGIS Dashboard/DashboardDataOutput") 
+path.set = "//Sfp.idir.bcgov/s140/s40086/WANSHARE/ROB/ARCS/ROB ARCS/Information Technology 6000-6999/6820-20 ArcGIS Dashboard/DashboardDataOutput/ProgressTracker"
+setwd("//Sfp.idir.bcgov/s140/s40086/WANSHARE/ROB/ARCS/ROB ARCS/Information Technology 6000-6999/6820-20 ArcGIS Dashboard/DashboardDataOutput/ProgressTracker") 
 name_key <- read_csv(file = "//Sfp.idir.bcgov/s140/s40086/WANSHARE/ROB/ARCS/ROB ARCS/Information Technology 6000-6999/6820-20 ArcGIS Dashboard/Name Key.csv")
 
 #____________________________________________________________
 
 multmerge = function(mypath){
   
-  filenames = list.files(path = mypath, full.names = TRUE)
+  filenames = list.files(path = mypath, pattern = "*.csv", full.names = TRUE)
   
   datalist = lapply(filenames, function(x){
     in.file <- read_csv(file = x)
-    # csv.names <- dir(path = x, pattern =".csv")
     file.date <- str_sub(x, start = -28, end = -19)
     
     in.file$`Assigned`[is.na(in.file$`Assigned`)] <- "Unassigned"
@@ -67,8 +66,8 @@ mymergeddata <- mymergeddata %>%
 spread_compliance_data <- mymergeddata %>%
   bind_rows %>%
   # mutate(ID = row_number()) %>%
-  spread(Date, Freq) %>%
-  rename(Assigned = Var1)
+  spread(Date, Freq) 
+
 
 mymergeddata_planned <- mymergeddata %>%
   filter(Assigned %in% c("C. White", "Coleman", "Connolly", "Fraleigh", "Jeffery", "Kurinka", "Manders", "Nazeri", "Pidskalney", "Robinson", "Stewart", "Story", "Strauss", "T.White")) %>%
@@ -99,11 +98,11 @@ ComplianceTeamOverview <- ggplot(data = mymergeddata_planned, aes(as.Date(Date),
           axis.title.y = element_text(color = "white", size = 15)
           )
 
-png("//Sfp.idir.bcgov/s140/s40086/WANSHARE/ROB/ARCS/ROB ARCS/Information Technology 6000-6999/6820-20 ArcGIS Dashboard/DashboardDataOutput/ProgressTracker/ComplianceTeamOverview.png")
+png("//Sfp.idir.bcgov/s140/s40086/WANSHARE/ROB/ARCS/ROB ARCS/Information Technology 6000-6999/6820-20 ArcGIS Dashboard/DashboardDataOutput/ComplianceTeamOverview.png")
 print(ComplianceTeamOverview)
 dev.off()
 
 # (Plots <- drive_upload(media = "C:/Users/kstory/Documents/GrandPoobah_R/Dashboard Data/ComplianceTeamOverview.png", path = "Plots/", overwrite = TRUE))
-(Plots <- drive_update(file = as_id("1B_cz-RFU9-0EzwFtMIg7Lox3J3QLK9Nb"), media = "//Sfp.idir.bcgov/s140/s40086/WANSHARE/ROB/ARCS/ROB ARCS/Information Technology 6000-6999/6820-20 ArcGIS Dashboard/DashboardDataOutput/ProgressTracker/ComplianceTeamOverview.png"))
+(Plots <- drive_update(file = as_id("1B_cz-RFU9-0EzwFtMIg7Lox3J3QLK9Nb"), media = "//Sfp.idir.bcgov/s140/s40086/WANSHARE/ROB/ARCS/ROB ARCS/Information Technology 6000-6999/6820-20 ArcGIS Dashboard/DashboardDataOutput/ComplianceTeamOverview.png"))
 
 
