@@ -28,7 +28,7 @@
 # LAN path for saving outputs
   
   setwd("//Sfp.idir.bcgov/s140/s40086/WANSHARE/ROB/ARCS/ROB ARCS/Information Technology 6000-6999/6820-20 ArcGIS Dashboard/DashboardDataOutput") 
-  
+
 # _______________________________________________________________________________________
   
 # FUNCTIONS
@@ -97,8 +97,8 @@
 
 
 # Merge the cleaned/filtered poobah data with the NRIS data. Merge on the Auth Num field, as this is a unique identifier. Remove duplicate rows.
-  dashboard_merge <- merge(x=NRIS_inspections_filtered,y=dashboard,by="Auth Num",all.y =TRUE)
-  dashboard_merge <- dashboard_merge[!duplicated(dashboard_merge),]
+  dashboard_merge <- merge(x=NRIS_inspections_filtered,y=dashboard,by="Auth Num",all.y = TRUE)
+  dashboard_merge <- dashboard_merge[!duplicated(dashboard_merge), ]
 
   
 # Update the poobah "Last Inspected" column to reflect NRIS "Inspection Date"
@@ -116,7 +116,7 @@
       dashboard_merge$'Inspected This Fiscal?'[which(dashboard_merge$'Inspected This Fiscal?' == "No")] <- "Not Started"
       dashboard_merge$'Inspected This Fiscal?'[which(dashboard_merge$`Inspection Status` == "Incomplete")] <- "In Draft"
       }
-  }
+    }
   
 
 # Recode the Rank to Priority for easy viewing on the map legend
@@ -199,17 +199,17 @@
   
 # ____________________________EXPORTING TO CSV AND GOOGLE DRIVE__________________________
   
-out_file <- paste("ProgressTracker/", Sys.Date(), "_DashboardData.csv", sep = "")
-
-write_csv(dashboard_merge, out_file)
-write_csv(dashboard_merge, "Updated NRIS Inspection Data.csv") # !! DO NOT CHANGE THE OUTFILE NAME
-write_csv(NRIS_complaints_filtered, "Updated NRIS Complaints Data.csv") # !! DO NOT CHANGE THE OUTFILE NAME
-write_csv(AMS_clean, "Updated_Authorizations.csv") # !! DO NOT CHANGE THE OUTFILE NAME
+  out_file <- paste("ProgressTracker/", Sys.Date(), "_DashboardData.csv", sep = "")
+  
+  write_csv(dashboard_merge, out_file)
+  write_csv(dashboard_merge, "Updated NRIS Inspection Data.csv") # !! DO NOT CHANGE THE OUTFILE NAME
+  write_csv(NRIS_complaints_filtered, "Updated NRIS Complaints Data.csv") # !! DO NOT CHANGE THE OUTFILE NAME
+  write_csv(AMS_clean, "Updated_Authorizations.csv") # !! DO NOT CHANGE THE OUTFILE NAME
 
 # Use drive upDATE only when a files has been previously uploaded. This allows the file to use the same id, which is referenced by ArcGIS. Using Drive upLOAD will overwrite the id.
-(Inspections <- drive_update(file = as_id("1qYZ1zvyOt2P6_eNwysNUEezcRgb5qqC0"), media = "Updated NRIS Inspection Data.csv"))
-(Complaints <- drive_update(file = as_id("1RixYE1ApAMvKk350pwx4A-MwboSs6MeX"), media = "Updated NRIS Complaints Data.csv"))
-(Authorizations <- drive_update(file = as_id("1iVRv5-eSrQreN9uocFnjTtgt3EfjAsy-"), media = "Updated_Authorizations.csv"))
+  (Inspections <- drive_update(file = as_id("1qYZ1zvyOt2P6_eNwysNUEezcRgb5qqC0"), media = "Updated NRIS Inspection Data.csv"))
+  (Complaints <- drive_update(file = as_id("1RixYE1ApAMvKk350pwx4A-MwboSs6MeX"), media = "Updated NRIS Complaints Data.csv"))
+  (Authorizations <- drive_update(file = as_id("1iVRv5-eSrQreN9uocFnjTtgt3EfjAsy-"), media = "Updated_Authorizations.csv"))
 
 # drive_upload is used for creation of the file on Drive and the creation of the ID. Do not use this unless you really know what you are doing! Overwriting the ID will cause serious problems in ArcGIS Online.
 # (Complaints <- drive_upload(media = "C:/Users/kstory/Documents/GrandPoobah_R/Dashboard Data/Updated NRIS Complaints Data.csv", path = "Compliance/", overwrite = TRUE))
