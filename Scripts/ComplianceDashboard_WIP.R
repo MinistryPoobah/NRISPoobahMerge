@@ -60,13 +60,24 @@
   NRIS_inspections <- read_csv(file = rownames(inspections_file_list[which.max(inspections_file_list$mtime),]), na = c("", NA,"#N/A"))
   NRIS_complaints <- read_csv(file = rownames(complaints_file_list[which.max(complaints_file_list$mtime),]), na = c("", NA,"#N/A"))
   
-  datamart <- read_xlsx(path = "//Sfp.idir.bcgov/s140/s40086/WANSHARE/ROB/ARCS/ROB ARCS/Information Technology 6000-6999/6820-01 Datamarts/DataMart of AMS Regulated Parties V1.3 Sep_15_2020.xlsx", sheet = "ALL", na = c("", NA,"#N/A", "n/a"))
+  datamart <- read_xlsx(path = "//Sfp.idir.bcgov/s140/s40086/WANSHARE/ROB/ARCS/ROB ARCS/Information Technology 6000-6999/6820-01 Datamarts/DataMart of AMS Regulated Parties V1.3 Sep_30_2020.xlsx", sheet = "ALL", na = c("", NA,"#N/A", "n/a"))
   name_key <- read_csv(file = "//Sfp.idir.bcgov/s140/s40086/WANSHARE/ROB/ARCS/ROB ARCS/Information Technology 6000-6999/6820-20 ArcGIS Dashboard/Name Key.csv")
   
 
 # __________________________________________________________________________________________  
 # __________________________________________________________________________________________ 
 
+#### ____________________________________POOBAH UPDATING____________________________________ 
+
+# The current "Assigned List" in the Poobah does not reflect the IRs that have been completed. To better reflect the planned team's
+# workload, the "Assigned List" needs to be updated with the "IRs Complete".
+  
+
+# Import the IRs Total sheet as per the poobah import above.
+# Mutate the "Inspector" field to reflect the actual name using the "names" sheet key. Check for any "NAs"
+# Add rows from IRs Total if auth # not in Assigned List.
+# Overwrite Assinged List "Inspected This Fiscal?" field to read as "Yes" if there is a recent complete entry in IRs Complete (e.g. March 31 to present)
+  
 
 #### _________________________________CLEANING AND MERGING__________________________________  
 
@@ -83,9 +94,9 @@
 # NRIS INSPECTIONS AND POOBAH MERGE
 
   NRIS_inspections_filtered <- NRIS_inspections %>%
-    filter(`EP System` == "AMS" | `EP System` == "Other") %>% # Filter for data from AMS and Other ("Other" includes UAs)
+    filter(`EP System` != "CRISP", `Requirement Source` %notin% c("Greenhouse Gas Industrial Reporting and Control Act", "Integrated Pest Management Act")) %>% # Filter for data from AMS and Other ("Other" includes UAs)
     rename("Auth Num" = "Authorization ID") %>% # Make field name match the poobah name so a merge can be easily made.
-    filter(`Inspection Status` %notin% c("Deleted", "Closed", "Template")) %>% # Omit non-useful NRIS data.
+    filter(`Inspection Status` %notin% c("Deleted", "Template")) %>% # Omit non-useful NRIS data.
     select(`Auth Num`, `Inspection Status`, Inspector, `Inspection Date`, "Latitude", "Longitude") # Trim down the data set now that it is filtered.
 
 
