@@ -50,6 +50,9 @@
   poobah_file_list <- file.info(list.files("//Sfp.idir.bcgov/s140/s40086/WANSHARE/ROB/ARCS/ROB ARCS/Information Technology 6000-6999/6820-20 ArcGIS Dashboard/Poobah", full.names = TRUE))
   inspections_file_list <- file.info(list.files("//Sfp.idir.bcgov/s140/s40086/WANSHARE/ROB/ARCS/ROB ARCS/Information Technology 6000-6999/6820-20 ArcGIS Dashboard/NRIS/Inspections", full.names = TRUE))
   complaints_file_list <- file.info(list.files("//Sfp.idir.bcgov/s140/s40086/WANSHARE/ROB/ARCS/ROB ARCS/Information Technology 6000-6999/6820-20 ArcGIS Dashboard/NRIS/Complaints", full.names = TRUE))
+  datamart_file_list <- file.info(list.files("//Sfp.idir.bcgov/s140/s40086/WANSHARE/ROB/ARCS/ROB ARCS/Information Technology 6000-6999/6820-01 Datamarts", pattern = "DataMart of AMS Regulated Parties", full.names = TRUE))
+  
+  # to-do: create a path list checker for the AMS datamart too.
   
 # _______________________________________________________________________________________
 
@@ -57,10 +60,10 @@
 
 # Read in the most recently updated spreadsheet from the respective file lists. Recognize #N/A and blanks as "NA"
   poobah <- read_xlsx(path = rownames(poobah_file_list[which.max(poobah_file_list$mtime),]), sheet = "Assigned List", guess_max = 1048576,  skip = 3, na = c("", NA, "#N/A"))
+  poobah_IR_complete <- read_xlsx(path = rownames(poobah_file_list[which.max(poobah_file_list$mtime),]), sheet = "IRs Complete", guess_max = 1048576,  skip = 5, na = c("", NA, "#N/A"))
   NRIS_inspections <- read_csv(file = rownames(inspections_file_list[which.max(inspections_file_list$mtime),]), na = c("", NA,"#N/A"))
   NRIS_complaints <- read_csv(file = rownames(complaints_file_list[which.max(complaints_file_list$mtime),]), na = c("", NA,"#N/A"))
-  
-  datamart <- read_xlsx(path = "//Sfp.idir.bcgov/s140/s40086/WANSHARE/ROB/ARCS/ROB ARCS/Information Technology 6000-6999/6820-01 Datamarts/DataMart of AMS Regulated Parties V1.3 Sep_30_2020.xlsx", sheet = "ALL", na = c("", NA,"#N/A", "n/a"))
+  datamart <- read_xlsx(path = rownames(datamart_file_list[which.max(datamart_file_list$mtime),]), sheet = "ALL", na = c("", NA,"#N/A", "n/a"))
   name_key <- read_csv(file = "//Sfp.idir.bcgov/s140/s40086/WANSHARE/ROB/ARCS/ROB ARCS/Information Technology 6000-6999/6820-20 ArcGIS Dashboard/Name Key.csv")
   
 
@@ -71,11 +74,29 @@
 
 # The current "Assigned List" in the Poobah does not reflect the IRs that have been completed. To better reflect the planned team's
 # workload, the "Assigned List" needs to be updated with the "IRs Complete".
-  
 
-# Import the IRs Total sheet as per the poobah import above.
-# Mutate the "Inspector" field to reflect the actual name using the "names" sheet key. Check for any "NAs"
-# Add rows from IRs Total if auth # not in Assigned List.
+# Mutate the "Inspector" field to reflect the actual name using the "names" sheet key. Check for any "NAs
+  
+#   poobah_IR_complete_filt <- poobah_IR_complete %>%
+#     filter(`Inspection Date` > "2020-03-31") %>%
+#     select(`EP System Number`, `Compliance`, `Inspection Date`, `Inspection Signed By`) %>%
+#     mutate(`Inspection Signed By` = str_replace(`Inspection Signed By`, "IDIR\\\\","")) %>%
+#     rename("Auth Num" = "EP System Number")
+#   
+#   poobah_IR_complete_filt$`Inspection Signed By` <- name_key$`poobah name`[match(poobah_IR_complete_filt$`Inspection Signed By`, name_key$`nris name`)]
+#   
+#   poobah_auth_list <- unique(poobah$`Auth Num`)
+#     
+#   
+# # Add rows from IRs Total if auth # not in Assigned List.
+#   
+#   poobah_complete_merged <- merge(poobah, poobah_IR_complete_filt, by = "Auth Num", all = TRUE)
+  
+  # for (i in nrow(poobah_IR_complete_filt)) {
+  #   if (poobah_IR_complete_filt[i, 1] %in% poobah_auth_list) {
+  #     poobah$`Last Inspected` <- poobah_IR_complete_filt$`Inspection Date`[match(poobah$`Auth Num`, poobah_IR_complete_filt$`EP System Number`)]
+  #   }
+  # }
 # Overwrite Assinged List "Inspected This Fiscal?" field to read as "Yes" if there is a recent complete entry in IRs Complete (e.g. March 31 to present)
   
 
@@ -158,7 +179,7 @@
   
 # Additional filtering on the merged dataset.
   dashboard_merge <- dashboard_merge %>%
-    select(-c(2:5, 26)) %>%
+    select(-c(2:6, 27)) %>%
     filter(!is.na(`Auth Num`))
   
   dashboard_merge$CPIX[which(dashboard_merge$CPIX == 0)] <- NA
