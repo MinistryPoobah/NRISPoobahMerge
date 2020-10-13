@@ -129,6 +129,7 @@
   dashboard$`Assigned`[which(dashboard$`Assigned` == "jeffery")] <- "Jeffery"
   dashboard$`Assigned`[which(dashboard$`Assigned` == "White")] <- "T. White"
   dashboard$`Assigned`[which(dashboard$`Assigned` == "Naseri")] <- "Nazeri"
+  dashboard$`Assigned`[which(dashboard$`Assigned` == "Omalley")] <- "O'Malley"
 
 
 # Merge the cleaned/filtered poobah data with the NRIS data. Merge on the Auth Num field, as this is a unique identifier. Remove duplicate rows.
