@@ -77,34 +77,37 @@
 
 # Mutate the "Inspector" field to reflect the actual name using the "names" sheet key. Check for any "NAs
   
-#   poobah_IR_complete_filt <- poobah_IR_complete %>%
-#     filter(`Inspection Date` > "2020-03-31") %>%
-#     select(`EP System Number`, `Compliance`, `Inspection Date`, `Inspection Signed By`) %>%
-#     mutate(`Inspection Signed By` = str_replace(`Inspection Signed By`, "IDIR\\\\","")) %>%
-#     rename("Auth Num" = "EP System Number")
-#   
-#   poobah_IR_complete_filt$`Inspection Signed By` <- name_key$`poobah name`[match(poobah_IR_complete_filt$`Inspection Signed By`, name_key$`nris name`)]
-#   
-#   poobah_auth_list <- unique(poobah$`Auth Num`)
-#     
-#   
-# # Add rows from IRs Total if auth # not in Assigned List.
-#   
-#   poobah_complete_merged <- merge(poobah, poobah_IR_complete_filt, by = "Auth Num", all = TRUE)
+  poobah_IR_complete_filt <- poobah_IR_complete %>%
+    filter(`Inspection Date` > "2020-03-31") %>%
+    select(`EP System Number`, `Regulated Party`, `Requirement Source`, `Inspection Status`, `Inspection Date`, `Inspection Signed By`) %>%
+    mutate(`Inspection Signed By` = str_replace(`Inspection Signed By`, "IDIR\\\\","")) %>%
+    rename("Auth Num" = "EP System Number")
   
-  # for (i in nrow(poobah_IR_complete_filt)) {
-  #   if (poobah_IR_complete_filt[i, 1] %in% poobah_auth_list) {
-  #     poobah$`Last Inspected` <- poobah_IR_complete_filt$`Inspection Date`[match(poobah$`Auth Num`, poobah_IR_complete_filt$`EP System Number`)]
-  #   }
-  # }
-# Overwrite Assinged List "Inspected This Fiscal?" field to read as "Yes" if there is a recent complete entry in IRs Complete (e.g. March 31 to present)
+  poobah_IR_complete_filt$`Inspection Signed By` <- name_key$`poobah name`[match(poobah_IR_complete_filt$`Inspection Signed By`, name_key$`nris name`)]
+  
+  poobah_IR_complete_filt <- poobah_IR_complete_filt[!duplicated(poobah_IR_complete_filt),]
+  # poobah_auth_list <- unique(poobah$`Auth Num`)
+    
+  
+# Add rows from IRs Total.
+
+  poobah_complete_merged <- merge(poobah, poobah_IR_complete_filt, by = "Auth Num", all = TRUE)
+  poobah_complete_merged <- poobah_complete_merged[!duplicated(poobah_complete_merged),]
+  poobah_complete_merged$`Inspected This Fiscal?` <- ifelse(!is.na(poobah_complete_merged$`Inspection Status`), "Yes", poobah_complete_merged$`Inspected This Fiscal?`)
+  poobah_complete_merged$`Authorization` <- ifelse(!is.na(poobah_complete_merged$`Regulated Party`), poobah_complete_merged$`Regulated Party`, poobah_complete_merged$`Authorization`)
+  poobah_complete_merged$`Sector` <- ifelse(!is.na(poobah_complete_merged$`Requirement Source`), poobah_complete_merged$`Requirement Source`, poobah_complete_merged$`Sector`)
+  poobah_complete_merged$`Assigned` <- ifelse(!is.na(poobah_complete_merged$`Inspection Signed By`), poobah_complete_merged$`Inspection Signed By`, poobah_complete_merged$`Assigned`)
+  
+
+
+  # write_csv(poobah_complete_merged, "test_out1.csv")
   
 
 #### _________________________________CLEANING AND MERGING__________________________________  
 
 # POOBAH
 
-  dashboard <- poobah %>%
+  dashboard <- poobah_complete_merged %>%
     # filter(`Workplan INS Qtr` == "Q1") %>% # Filter for quarter.
     mutate(Long = as.numeric(Long) *-1) %>% #the data in the poobah have the longitude as positive. It should be negative.
     mutate("Authorizations - Name" = paste(`Auth Num`, Authorization, sep = " - ")) # Create a unique site name that includes both the auth number and site name
@@ -118,7 +121,7 @@
     filter(`EP System` != "CRISP", `Requirement Source` %notin% c("Greenhouse Gas Industrial Reporting and Control Act", "Integrated Pest Management Act")) %>% # Filter for data from AMS and Other ("Other" includes UAs)
     rename("Auth Num" = "Authorization ID") %>% # Make field name match the poobah name so a merge can be easily made.
     filter(`Inspection Status` %notin% c("Deleted", "Template")) %>% # Omit non-useful NRIS data.
-    select(`Auth Num`, `Inspection Status`, Inspector, `Inspection Date`, "Latitude", "Longitude") # Trim down the data set now that it is filtered.
+    select(`Auth Num`, `Inspection Status`, `Inspector`, `Inspection Date`, "Latitude", "Longitude") # Trim down the data set now that it is filtered.
 
 
 # Recode some weird values and mizspellz in the poobah Assigned field.
@@ -129,12 +132,12 @@
 
 
 # Merge the cleaned/filtered poobah data with the NRIS data. Merge on the Auth Num field, as this is a unique identifier. Remove duplicate rows.
-  dashboard_merge <- merge(x=NRIS_inspections_filtered,y=dashboard,by="Auth Num",all.y = TRUE)
+  dashboard_merge <- merge(x = NRIS_inspections_filtered, y = dashboard, by ="Auth Num", all.y = TRUE)
   dashboard_merge <- dashboard_merge[!duplicated(dashboard_merge), ]
 
   
 # Update the poobah "Last Inspected" column to reflect NRIS "Inspection Date"
-  dashboard_merge$`Last Inspected` <- as.POSIXct(ifelse(!is.na(dashboard_merge$`Inspection Date`), dashboard_merge$`Inspection Date`, dashboard_merge$`Last Inspected`), origin = dashboard_merge$`Inspection Date`)
+  dashboard_merge$`Last Inspected` <- as.POSIXct(ifelse(!is.na(dashboard_merge$`Inspection Date.x`), dashboard_merge$`Inspection Date.x`, dashboard_merge$`Last Inspected`), origin = dashboard_merge$`Inspection Date.x`)
   # dashboard_merge$`Last Inspected` <- as.POSIXct(ifelse(!is.na(dashboard_merge$`Inspection Date`), dashboard_merge$`Inspection Date`, dashboard_merge$`Last Inspected`), origin = "1970-01-01 00:00:00")
 
   
@@ -143,10 +146,10 @@
 # The purpose of this loop is to ensure that inspections completed by reactive aren't updated as "complete" when they actually haven't been inspected by planned.  
    for (i in 1:nrow(dashboard_merge)){
     if (dashboard_merge$Assigned %in% name_key$`poobah name`){
-      dashboard_merge$'Inspected This Fiscal?'[which(dashboard_merge$`Inspection Status` == "Complete")] <- "Complete" 
+      dashboard_merge$'Inspected This Fiscal?'[which(dashboard_merge$`Inspection Status.x` == "Complete")] <- "Complete" 
       dashboard_merge$'Inspected This Fiscal?'[which(dashboard_merge$'Inspected This Fiscal?' == "Yes")] <- "Complete" 
       dashboard_merge$'Inspected This Fiscal?'[which(dashboard_merge$'Inspected This Fiscal?' == "No")] <- "Not Started"
-      dashboard_merge$'Inspected This Fiscal?'[which(dashboard_merge$`Inspection Status` == "Incomplete")] <- "In Draft"
+      dashboard_merge$'Inspected This Fiscal?'[which(dashboard_merge$`Inspection Status.x` == "Incomplete")] <- "In Draft"
       }
     }
   
@@ -178,11 +181,11 @@
 
   
 # Additional filtering on the merged dataset.
-  dashboard_merge <- dashboard_merge %>%
-    select(-c(2:6, 27)) %>%
+  dashboard_merge_filt <- dashboard_merge %>%
+    select(-c(2:6, 27:51)) %>%
     filter(!is.na(`Auth Num`))
   
-  dashboard_merge$CPIX[which(dashboard_merge$CPIX == 0)] <- NA
+  dashboard_merge_filt$CPIX[which(dashboard_merge_filt$CPIX == 0)] <- NA
 
 
 # _______________________________________________________________________________________
@@ -233,8 +236,8 @@
   
   out_file <- paste("ProgressTracker/", Sys.Date(), "_DashboardData.csv", sep = "")
   
-  write_csv(dashboard_merge, out_file)
-  write_csv(dashboard_merge, "Updated NRIS Inspection Data.csv") # !! DO NOT CHANGE THE OUTFILE NAME
+  write_csv(dashboard_merge_filt, out_file)
+  write_csv(dashboard_merge_filt, "Updated NRIS Inspection Data.csv") # !! DO NOT CHANGE THE OUTFILE NAME
   write_csv(NRIS_complaints_filtered, "Updated NRIS Complaints Data.csv") # !! DO NOT CHANGE THE OUTFILE NAME
   write_csv(AMS_clean, "Updated_Authorizations.csv") # !! DO NOT CHANGE THE OUTFILE NAME
 
