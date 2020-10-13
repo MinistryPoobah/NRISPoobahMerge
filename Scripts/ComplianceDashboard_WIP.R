@@ -89,18 +89,17 @@
   # poobah_auth_list <- unique(poobah$`Auth Num`)
     
   
-# Add rows from IRs Total.
+# Merge the two poobah sheets. Full merge.
 
   poobah_complete_merged <- merge(poobah, poobah_IR_complete_filt, by = "Auth Num", all = TRUE)
   poobah_complete_merged <- poobah_complete_merged[!duplicated(poobah_complete_merged),]
+  
+# Using the information from the IR complete sheet, update any missing poobah information related to date, inspector, regulatory party, completion status.
+  
   poobah_complete_merged$`Inspected This Fiscal?` <- ifelse(!is.na(poobah_complete_merged$`Inspection Status`), "Yes", poobah_complete_merged$`Inspected This Fiscal?`)
   poobah_complete_merged$`Authorization` <- ifelse(!is.na(poobah_complete_merged$`Regulated Party`), poobah_complete_merged$`Regulated Party`, poobah_complete_merged$`Authorization`)
   poobah_complete_merged$`Sector` <- ifelse(!is.na(poobah_complete_merged$`Requirement Source`), poobah_complete_merged$`Requirement Source`, poobah_complete_merged$`Sector`)
   poobah_complete_merged$`Assigned` <- ifelse(!is.na(poobah_complete_merged$`Inspection Signed By`), poobah_complete_merged$`Inspection Signed By`, poobah_complete_merged$`Assigned`)
-  
-
-
-  # write_csv(poobah_complete_merged, "test_out1.csv")
   
 
 #### _________________________________CLEANING AND MERGING__________________________________  
